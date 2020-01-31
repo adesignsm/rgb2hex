@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<style type = "text/css">
+		body, html {
+			padding: 0;
+			margin: 0;
+			overflow-y: hidden;
+			font-family: Helvetica, sans-serif;
+		}
+
+		#input-container {
+			position: absolute;
+			top: 80%;
+			left: 0;
+			text-align: center;
+			margin-bottom: 5%;
+		}
+
+		input[type=text] {
+			font-size: 300%;
+			padding-top: 2%;
+			padding-bottom: 2%;
+			padding-right: 3%;
+			padding-left: 3%;
+		}
+
+		#result {
+			position: absolute;
+			text-align: center;
+			top: 5%;
+			left: 25%;
+			color: #fff;
+			font-size: 500%;
+		}
+		</style>
+	</head>
+
+	<body>
+		<script type = "text/javascript" src = "three.js"></script>
+
+		<div id = "wrapper">
+			<h1 id = "result"> </h1>
+			<div id = "canvas-container"></div>
+
+			<div id = "input-container">
+				<input id = "hex" type = "text" placeholder = "enter hex">
+				<input id = "rgb" type = "text" placeholder = "enter rgb">
+			</div>
+		</div>
+
+		<script type = "text/javascript">
+
+			var hex_input = document.getElementById("hex");
+			var rgb_input = document.getElementById("rgb");
+			console.log(hex_input, rgb_input);
+
+			var hex_material;
+			var rgb_material;
+
+			var r, g, b;
+
+			//rgb to hex
+			function rgb2hex(rgb) {
+
+			 	rgb = rgb.match(/^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?/i);
+
+			 	return (rgb && rgb.length === 4) ? "#" +
+
+			  	("0" + parseInt(rgb[1],10).toString(16)).slice(-2) +
+			  	("0" + parseInt(rgb[2],10).toString(16)).slice(-2) +
+			  	("0" + parseInt(rgb[3],10).toString(16)).slice(-2) : '';
+			}
+
+			function hex2rgb(hex) {
+
+				var res = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+
+				return "rgb(" + parseInt(res[1], 16) + ", " + parseInt(res[2], 16) + ", " + parseInt(res[3], 16) + ")";
+
+			}
+
+			///////////////////////////////////////////////////////////////////////////////////////////////
+
+			var scene = new THREE.Scene();
+			var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+			camera.far = 10000;
+
+			var renderer = new THREE.WebGLRenderer({antialias: true});
+			renderer.setSize(window.innerWidth, window.innerHeight);
+			renderer.shadowMapenabled = true;
+
+			document.getElementById("canvas-container").appendChild(renderer.domElement);
+
+			window.addEventListener("resize", function() {
+
+				var width = window.innerWidth;
+				var height = window.innerHeight;
+
+				camera.aspect = width / height;
+				renderer.setSize(width, height);
+
+				camera.updateProjectionMatrix();
+			});
+
+			camera.position.z = 15;
+
+			var geo = new THREE.BoxGeometry(5, 5, 5, 5);
+			var material = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide});
+			var res_cube = new THREE.Mesh(geo, material);
+			scene.add(res_cube);
+
+			document.getElementById("rgb").onkeypress = function(event) { //only fire all rgb functions
+
+				if (event.keyCode === 13) {
+
+					var rgb_string = String(rgb_input.value);
+
+					var hexcode = rgb2hex(rgb_string);
+					console.log(hexcode);
+
+					hex_material = hexcode.replace("#", "0x"); //replace the css friendly '#' to a mesh friendly '0x'
+
+					res_cube.material.color.setHex(hex_material);
+
+					document.getElementById("result").innerHTML = hexcode;
+				}
+			}
+
+
+			document.getElementById("hex").onkeypress = function() { //only fire all hex functions
+
+				if (event.keyCode === 13) {
+
+					var hex_string = String(hex_input.value);
+					console.log(hex_string);
+
+					console.log(hex2rgb(hex_string));
+
+					hex_material = hex_string.replace("#", "0x"); //replace the css friendly '#' to a mesh friendly '0x'
+					console.log(hex_material);
+
+					res_cube.material.color.setHex(hex_material);
+
+					document.getElementById("result").innerHTML = hex2rgb(hex_string);
+				}
+			}
+
+			var update = function() {
+
+				res_cube.rotation.x += 0.004;
+				res_cube.rotation.y += 0.004;
+			};
+
+			var render = function() {
+
+				renderer.render(scene, camera);
+			}
+
+			var animate = function() {
+
+				requestAnimationFrame(animate);
+				render();
+				update();
+			}
+
+			animate();
+		</script>
+	</body>
+</html>
